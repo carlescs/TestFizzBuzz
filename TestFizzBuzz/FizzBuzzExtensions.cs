@@ -9,10 +9,10 @@ namespace TestFizzBuzz
     {
         public static IEnumerable<string> FizzBuzz<T>(this IEnumerable<T> enumerable, Predicate<T> testFizz, Predicate<T> testBuzz)
         {
-            return enumerable.Select(i => FizzBuzz(i, testFizz, testBuzz));
+            return enumerable.Select(i => FizzBuzzElem(i, testFizz, testBuzz));
         }
 
-        public static string FizzBuzz<T>(this T i, Predicate<T> testFizz, Predicate<T> testBuzz)
+        public static string FizzBuzzElem<T>(this T i, Predicate<T> testFizz, Predicate<T> testBuzz)
         {
             if (!testFizz.Invoke(i) && !testBuzz.Invoke(i))
                 return string.Format("{0}", i);
