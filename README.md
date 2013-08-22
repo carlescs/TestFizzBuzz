@@ -1,0 +1,4 @@
+TestFizzBuzz
+============
+
+A generic FizzBuzzTest
