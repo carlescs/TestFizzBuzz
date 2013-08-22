@@ -14,12 +14,12 @@ namespace TestFizzBuzz
 
         public static string FizzBuzzElem<T>(this T i, Predicate<T> testFizz, Predicate<T> testBuzz)
         {
-            if (!testFizz.Invoke(i) && !testBuzz.Invoke(i))
+            if (!testFizz(i) && !testBuzz(i))
                 return string.Format("{0}", i);
             var sb = new StringBuilder();
-            if (testFizz.Invoke(i))
+            if (testFizz(i))
                 sb.Append("Fizz");
-            if (testBuzz.Invoke(i))
+            if (testBuzz(i))
                 sb.Append("Buzz");
             return sb.ToString();
         }
