@@ -12,7 +12,12 @@ namespace TestFizzBuzz
             return enumerable.Select(i => FizzBuzzElem(i, testFizz, testBuzz));
         }
 
-        public static string FizzBuzzElem<T>(this T i, Predicate<T> testFizz, Predicate<T> testBuzz)
+        public static IEnumerable<string> FizzBuzz(this IEnumerable<int> enumerable)
+        {
+            return enumerable.FizzBuzz(t => t%3 == 0, t => t%5 == 0);
+        } 
+
+        private static string FizzBuzzElem<T>(this T i, Predicate<T> testFizz, Predicate<T> testBuzz)
         {
             if (!testFizz(i) && !testBuzz(i))
                 return string.Format("{0}", i);

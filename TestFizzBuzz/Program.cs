@@ -7,14 +7,9 @@ namespace TestFizzBuzz
     {
         static void Main()
         {
-            foreach (var s in Enumerable.Range(1, 20).FizzBuzz(t => t % 3 == 0, t => t % 5 == 0))
+            foreach (var s in Enumerable.Range(1, 200).FizzBuzz())
             {
                 Console.WriteLine(s);
-            }
-            Console.ReadKey(true);
-            foreach (var s in Enumerable.Range(1,20))
-            {
-                Console.WriteLine(s.FizzBuzzElem(t => t%3 == 0, t => t%5 == 0));
             }
             Console.ReadKey(true);
         }
