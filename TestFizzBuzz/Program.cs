@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace TestFizzBuzz
 {
-    class Program
+    public static class Program
     {
         static void Main()
         {
