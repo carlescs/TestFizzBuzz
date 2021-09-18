@@ -9,7 +9,7 @@ namespace TestFizzBuzz.Tests
 
         public FizzBuzzTests()
         {
-            var elems = Enumerable.Range(0, 16);
+            var elems = Enumerable.Range(0, 100);
             _fizzbuzz = elems.FizzBuzz().ToArray();
         }
 
@@ -17,6 +17,7 @@ namespace TestFizzBuzz.Tests
         [InlineData("Fizz",3)]
         [InlineData("Buzz",5)]
         [InlineData("FizzBuzz",15)]
+        [InlineData("22", 22)]
         public void FizzBuzzTestSpecialCases(string expected, int index)
         {
             Assert.Equal(expected,_fizzbuzz[index]);
