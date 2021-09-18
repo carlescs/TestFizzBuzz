@@ -26,6 +26,10 @@ steps:
   inputs:
     command: 'build'
     projects: '**/*.sln'
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'XUnit'
+    testResultsFiles: '**/TEST-*.xml'
 - task: SonarCloudAnalyze@1
 - task: SonarCloudPublish@1
   inputs:
