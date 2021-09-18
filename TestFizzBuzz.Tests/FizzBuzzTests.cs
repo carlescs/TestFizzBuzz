@@ -9,7 +9,7 @@ namespace TestFizzBuzz.Tests
 
         public FizzBuzzTests()
         {
-            var elems = Enumerable.Range(0, 16);
+            var elems = Enumerable.Range(0, 100);
             _fizzbuzz = elems.FizzBuzz().ToArray();
         }
 
