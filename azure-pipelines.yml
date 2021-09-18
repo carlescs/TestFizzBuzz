@@ -29,6 +29,10 @@ steps:
     command: 'test'
     projects: '**/*.Tests.csproj'
     testRunTitle: 'Tests TestFizzBuzz'
+- task: PublishCodeCoverageResults@1
+  inputs:
+    codeCoverageTool: 'JaCoCo'
+    summaryFileLocation: '**/coverage.xml'
 - task: SonarCloudAnalyze@1
 - task: SonarCloudPublish@1
   inputs:
