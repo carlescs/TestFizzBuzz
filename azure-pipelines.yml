@@ -20,13 +20,13 @@ steps:
     projectName: 'TestFizzBuzz'
 - task: DotNetCoreCLI@2
   inputs:
+    command: 'build'
+    projects: '**/*.sln'
+- task: DotNetCoreCLI@2
+  inputs:
     command: 'test'
     projects: '**/*.Tests.csproj'
     testRunTitle: 'Tests TestFizzBuzz'
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'build'
-    projects: '**/*.sln'
 - task: SonarCloudAnalyze@1
 - task: SonarCloudPublish@1
   inputs:
