@@ -8,7 +8,7 @@ trigger:
 - develop
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: windows-latest
 
 steps:
 - task: SonarCloudPrepare@1
@@ -28,7 +28,7 @@ steps:
   inputs:
     command: 'test'
     projects: '**/*.Tests.csproj'
-    arguments: '--configuration $(buildConfiguration) --logger trx --collect:"XPlat Code Coverage"'
+    arguments: '--configuration $(buildConfiguration) --logger trx --collect:"Code Coverage"'
     testRunTitle: 'Tests TestFizzBuzz'
 - task: SonarCloudAnalyze@1
 - task: SonarCloudPublish@1
