@@ -28,7 +28,7 @@ steps:
   inputs:
     command: 'test'
     projects: '**/*.Tests.csproj'
-    arguments: '/p:CollectCoverage=true /p:CoverletOutputFormat=cobertura'
+    arguments: '--configuration $(buildConfiguration) --logger trx --collect:"Code Coverage"'
     testRunTitle: 'Tests TestFizzBuzz'
 - task: SonarCloudAnalyze@1
 - task: SonarCloudPublish@1
