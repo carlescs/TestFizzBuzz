@@ -28,12 +28,8 @@ steps:
   inputs:
     command: 'test'
     projects: '**/*.Tests.csproj'
-    arguments: '--configuration $(buildConfiguration) --logger trx --collect:"Code Coverage"'
+    arguments: '--configuration $(buildConfiguration) --logger trx --collect:"XPlat Code Coverage"'
     testRunTitle: 'Tests TestFizzBuzz'
-- task: PublishCodeCoverageResults@1
-  inputs:
-    codeCoverageTool: 'Cobertura'
-    summaryFileLocation: '**/*.coverage'
 - task: SonarCloudAnalyze@1
 - task: SonarCloudPublish@1
   inputs:
