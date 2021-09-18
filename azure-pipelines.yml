@@ -19,10 +19,12 @@ steps:
     projectKey: 'carles-cs_TestFizzBuzz'
     projectName: 'TestFizzBuzz'
 - task: DotNetCoreCLI@2
+  displayName: Build
   inputs:
     command: 'build'
     projects: '**/*.sln'
 - task: DotNetCoreCLI@2
+  displayName: Run Tests
   inputs:
     command: 'test'
     projects: '**/*.Tests.csproj'
