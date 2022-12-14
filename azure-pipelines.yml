@@ -8,7 +8,7 @@ trigger:
 - develop
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: windows-latest
 
 steps:
 - task: SonarCloudPrepare@1
@@ -19,9 +19,17 @@ steps:
     projectKey: 'carles-cs_TestFizzBuzz'
     projectName: 'TestFizzBuzz'
 - task: DotNetCoreCLI@2
+  displayName: Build
   inputs:
     command: 'build'
     projects: '**/*.sln'
+- task: DotNetCoreCLI@2
+  displayName: Run Tests
+  inputs:
+    command: 'test'
+    projects: '**/*.Tests.csproj'
+    arguments: '--configuration $(buildConfiguration) --logger trx --collect:"Code Coverage"'
+    testRunTitle: 'Tests TestFizzBuzz'
 - task: SonarCloudAnalyze@1
 - task: SonarCloudPublish@1
   inputs:
