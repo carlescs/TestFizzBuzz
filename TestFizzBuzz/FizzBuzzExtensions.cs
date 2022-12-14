@@ -20,7 +20,7 @@ namespace TestFizzBuzz
         private static string FizzBuzzElem<T>(this T i, Predicate<T> testFizz, Predicate<T> testBuzz)
         {
             if (!testFizz(i) && !testBuzz(i))
-                return string.Format("{0}", i);
+                return $"{i}";
             var sb = new StringBuilder();
             if (testFizz(i))
                 sb.Append("Fizz");

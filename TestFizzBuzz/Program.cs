@@ -5,7 +5,7 @@ namespace TestFizzBuzz
 {
     class Program
     {
-        static void Main()
+        private static void Main()
         {
             foreach (var s in Enumerable.Range(1, 200).FizzBuzz())
             {
