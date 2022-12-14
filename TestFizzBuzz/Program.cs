@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Linq;
 
-namespace TestFizzBuzz
+namespace TestFizzBuzz;
+
+public static class Program
 {
-    public static class Program
+    private static void Main()
     {
-        private static void Main()
+        foreach (var s in Enumerable.Range(1, 200).FizzBuzz())
         {
-            foreach (var s in Enumerable.Range(1, 200).FizzBuzz())
-            {
-                Console.WriteLine(s);
-            }
-            Console.ReadKey(true);
+            Console.WriteLine(s);
         }
+        Console.ReadKey(true);
     }
 }
