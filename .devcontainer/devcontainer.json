@@ -22,7 +22,7 @@
 		"vscode": {
 			"extensions": [
 				"ms-dotnettools.csharp",
-				"formulahendry.dotnet-test-explorer",
+				"formulahendry.dotnet-test-explorer"
 			]
 		}
 	},
