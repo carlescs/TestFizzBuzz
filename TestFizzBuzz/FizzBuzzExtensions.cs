@@ -14,18 +14,24 @@ public static class FizzBuzzExtensions
 
     public static IEnumerable<string> FizzBuzz(this IEnumerable<int> enumerable)
     {
-        return enumerable.FizzBuzz(t => t%3 == 0, t => t%5 == 0);
-    } 
+        return enumerable.FizzBuzz(t => t % 3 == 0, t => t % 5 == 0);
+    }
 
     private static string FizzBuzzElem<T>(this T i, Predicate<T> testFizz, Predicate<T> testBuzz)
     {
         if (!testFizz(i) && !testBuzz(i))
+        {
             return $"{i}";
+        }
         var sb = new StringBuilder();
         if (testFizz(i))
+        {
             sb.Append("Fizz");
+        }
         if (testBuzz(i))
+        {
             sb.Append("Buzz");
+        }
         return sb.ToString();
     }
 }
