@@ -10,7 +10,7 @@ public class FizzBuzzTests
 
     public FizzBuzzTests()
     {
-        var elems = Enumerable.Range(0, 100);
+        var elems = Enumerable.Range(0, 100).ToList();
         _fizzbuzz = elems.FizzBuzz().ToArray();
 
         _fizzbuzzStrings = elems.Select(t=> t.ToString()).FizzBuzz(t=>t.EndsWith("3"),t=>t.EndsWith("5")).ToArray();
