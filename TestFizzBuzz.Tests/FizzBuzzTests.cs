@@ -6,11 +6,14 @@ namespace TestFizzBuzz.Tests;
 public class FizzBuzzTests
 {
     private readonly string[] _fizzbuzz;
-        
+    private readonly string[] _fizzbuzzStrings;
+
     public FizzBuzzTests()
     {
         var elems = Enumerable.Range(0, 100);
         _fizzbuzz = elems.FizzBuzz().ToArray();
+
+        _fizzbuzzStrings = elems.Select(t=> t.ToString()).FizzBuzz(t=>t.EndsWith("3"),t=>t.EndsWith("5")).ToArray();
     }
 
     [Theory]
@@ -41,5 +44,15 @@ public class FizzBuzzTests
                 Assert.Equal($"{i}",_fizzbuzz[i]);
             }
         }
+    }
+
+    [Theory]
+    [InlineData("Fizz",3)]
+    [InlineData("Buzz",5)]
+    [InlineData("Buzz",15)]
+    [InlineData("21", 21)]
+    public void FizzBuzzTestSpecialCasesStrings(string expected, int index)
+    {
+        Assert.Equal(expected, _fizzbuzzStrings[index]);
     }
 }
