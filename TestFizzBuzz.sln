@@ -1,16 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestFizzBuzz", "TestFizzBuzz\TestFizzBuzz.csproj", "{0C2D5D0A-B3B7-48DC-B367-67D41F79E1FA}"
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.34607.79
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestFizzBuzz", "TestFizzBuzz\TestFizzBuzz.csproj", "{0C2D5D0A-B3B7-48DC-B367-67D41F79E1FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestFizzBuzz.Tests", "TestFizzBuzz.Tests\TestFizzBuzz.Tests.csproj", "{B21906EC-8D10-46F5-BECB-FC497BCE2C50}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{AABAF20C-8670-4236-B2F9-3EA05C6E6172}"
-	ProjectSection(SolutionItems) = preProject
-		.nuget\NuGet.Config = .nuget\NuGet.Config
-		.nuget\NuGet.exe = .nuget\NuGet.exe
-		.nuget\NuGet.targets = .nuget\NuGet.targets
-	EndProjectSection
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestFizzBuzz.Tests", "TestFizzBuzz.Tests\TestFizzBuzz.Tests.csproj", "{B21906EC-8D10-46F5-BECB-FC497BCE2C50}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

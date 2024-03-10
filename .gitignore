@@ -6,3 +6,4 @@ TestFizzBuzz/obj/
 /.vs/TestFizzBuzz/v17
 /.idea/
 *.DotSettings.user
+/.vs
