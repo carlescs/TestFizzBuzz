@@ -5,7 +5,6 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased] - Dependencies Update
 
 ### Changed
-- Updated target framework from .NET 9.0 to .NET 8.0 for better compatibility
 - Updated NuGet packages to latest versions:
   - `coverlet.collector`: 6.0.2 → 6.0.4
   - `Microsoft.NET.Test.Sdk`: 17.12.0 → 17.14.1  
