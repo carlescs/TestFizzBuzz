@@ -21,23 +21,21 @@ jobs:
       with:
         fetch-depth: 0  # Required for GitVersion
     
-    - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v3
-      with:
-        versionSpec: '6.0.0'
-    
-    - name: Determine Version
-      id: gitversion
-      uses: gittools/actions/gitversion/execute@v3
-      with:
-        useConfigFile: true
-        disableCache: true
-        additionalArguments: '/nofetch'
-    
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.0.x
+    
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v1.1.1
+      with:
+        versionSpec: '5.12.0'
+    
+    - name: Determine Version
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@v1.1.1
+      with:
+        useConfigFile: true
     
     - name: Restore dependencies
       run: dotnet restore
@@ -57,12 +55,12 @@ jobs:
     
     - name: Create Release
       if: github.ref == 'refs/heads/master' && !contains(github.event.head_commit.message, 'skip-release')
-      uses: actions/create-release@v1
+      uses: softprops/action-gh-release@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: v${{ steps.gitversion.outputs.semVer }}
-        release_name: Release v${{ steps.gitversion.outputs.semVer }}
+        name: Release v${{ steps.gitversion.outputs.semVer }}
         body: |
           ## Version ${{ steps.gitversion.outputs.semVer }}
           
@@ -71,8 +69,6 @@ jobs:
           
           ### Changes
           This release was automatically generated from commit ${{ github.sha }}.
-          
-          For detailed changes, please see the [commit history](https://github.com/${{ github.repository }}/compare/v${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}.${{ steps.gitversion.outputs.patch-1 }}...v${{ steps.gitversion.outputs.semVer }}).
         draft: false
         prerelease: ${{ contains(steps.gitversion.outputs.semVer, '-') }}
     
