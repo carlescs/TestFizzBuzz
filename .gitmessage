@@ -1,0 +1,31 @@
+# <type>[optional scope]: <description>
+#
+# [optional body]
+# Explain what and why (not how). Wrap at 72 characters.
+#
+# [optional footer(s)]
+# Include references to issues: "Fixes #123", "Closes #456"
+#
+# --- SEMANTIC COMMIT TYPES ---
+# feat:     A new feature (MINOR version bump)
+# fix:      A bug fix (PATCH version bump) 
+# docs:     Documentation only changes
+# style:    Formatting, missing semi colons, etc; no code change
+# refactor: Code change that neither fixes bug nor adds feature
+# perf:     Code change that improves performance
+# test:     Adding missing or correcting existing tests
+# build:    Changes to build system or external dependencies
+# ci:       Changes to CI configuration files and scripts
+# chore:    Updates that don't modify src or test files
+#
+# --- BREAKING CHANGES ---
+# Add "BREAKING CHANGE:" in footer or "!" after type/scope
+# Example: "feat!: remove deprecated method" (MAJOR version bump)
+#
+# --- GUIDELINES ---
+# - Use imperative mood: "add" not "added" or "adds"
+# - Don't capitalize first letter of description
+# - No dot (.) at the end of description
+# - Subject line should be 50 characters or less
+# - Separate subject from body with blank line
+# - Body should explain what and why, not how
