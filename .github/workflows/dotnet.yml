@@ -13,9 +13,9 @@ jobs:
 
     steps:
     
-    - uses: actions/checkout@v4.1.7
-    - name: setup-dotnet
-      uses: xt0rted/setup-dotnet@v1.5.0
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.0.x
     - name: Restore dependencies
@@ -26,7 +26,8 @@ jobs:
       run: dotnet test --no-build --verbosity normal
     
     - name: Publish Test Results
-      uses: actions/upload-artifact@v3.2.1-node20
+      uses: actions/upload-artifact@v4
+      if: always()
       with:
-        name: Test Results
+        name: test-results
         path: TestResults
