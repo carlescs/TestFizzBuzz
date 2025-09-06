@@ -4,16 +4,23 @@ TestFizzBuzz is a .NET 9.0 console application that implements a generic FizzBuz
 
 **Always reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.**
 
-## Working Effectively
+## Project Structure
 
-### Prerequisites and Setup
-- **Install .NET 9.0 SDK** (CRITICAL: .NET 8.0 SDK will NOT work):
-  ```bash
-  wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-  chmod +x dotnet-install.sh
-  ./dotnet-install.sh --version 9.0.100 --install-dir ~/.dotnet
-  export PATH="$HOME/.dotnet:$PATH"
-  ```
+```
+TestFizzBuzz/
+├── TestFizzBuzz/                    # Main console application
+│   ├── Program.cs                   # Entry point - prints FizzBuzz 1-200
+│   ├── FizzBuzzExtensions.cs        # Generic FizzBuzz extension methods
+│   └── TestFizzBuzz.csproj         # Project file targeting net9.0
+├── TestFizzBuzz.Tests/              # Unit test project
+│   ├── FizzBuzzTests.cs            # Comprehensive xUnit tests
+│   └── TestFizzBuzz.Tests.csproj   # Test project with xUnit dependencies
+├── TestFizzBuzz.sln                # Solution file
+├── .github/workflows/dotnet.yml    # GitHub Actions CI/CD
+└── azure-pipelines.yml             # Azure DevOps pipeline
+```
+
+## Working Effectively
 
 ### Bootstrap, Build, and Test the Repository
 - Navigate to repository root: `cd /path/to/TestFizzBuzz`
@@ -41,7 +48,6 @@ TestFizzBuzz is a .NET 9.0 console application that implements a generic FizzBuz
 ### Build Validation
 - **Always run the full build sequence** before committing changes:
   ```bash
-  export PATH="$HOME/.dotnet:$PATH"
   dotnet restore
   dotnet build --no-restore
   dotnet test --no-build --verbosity normal
@@ -49,24 +55,7 @@ TestFizzBuzz is a .NET 9.0 console application that implements a generic FizzBuz
 - All commands should complete successfully with exit code 0
 - Test output should show "Test summary: total: 9, failed: 0, succeeded: 9, skipped: 0"
 
-## Common Tasks
-
-### Project Structure
-```
-TestFizzBuzz/
-├── TestFizzBuzz/                    # Main console application
-│   ├── Program.cs                   # Entry point - prints FizzBuzz 1-200
-│   ├── FizzBuzzExtensions.cs        # Generic FizzBuzz extension methods
-│   └── TestFizzBuzz.csproj         # Project file targeting net9.0
-├── TestFizzBuzz.Tests/              # Unit test project
-│   ├── FizzBuzzTests.cs            # Comprehensive xUnit tests
-│   └── TestFizzBuzz.Tests.csproj   # Test project with xUnit dependencies
-├── TestFizzBuzz.sln                # Solution file
-├── .github/workflows/dotnet.yml    # GitHub Actions CI/CD
-└── azure-pipelines.yml             # Azure DevOps pipeline
-```
-
-### Key Files to Check After Changes
+## Key Files to Check After Changes
 - **Always review `TestFizzBuzz/FizzBuzzExtensions.cs`** when modifying the FizzBuzz logic
 - **Always run tests in `TestFizzBuzz.Tests/FizzBuzzTests.cs`** to verify behavior
 - **Check Program.cs** only when modifying the console application entry point
@@ -79,7 +68,6 @@ TestFizzBuzz/
 ## Troubleshooting
 
 ### Common Issues
-- **"NETSDK1045" Error**: You have .NET 8.0 SDK instead of .NET 9.0. Follow Prerequisites section to install .NET 9.0.
 - **Console.ReadKey() Exception**: Expected behavior in non-interactive environments. Use input redirection: `echo "" | dotnet run --project TestFizzBuzz`
 - **Build Failures**: Always run `dotnet clean` then the full build sequence if you encounter unexplained build issues
 
