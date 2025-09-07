@@ -48,7 +48,6 @@ jobs:
 
       - name: Test
         run: dotnet test --no-build --configuration Release --verbosity normal
-    
       - name: Publish Test Results
         uses: actions/upload-artifact@v4
         if: always()
@@ -62,7 +61,7 @@ jobs:
         run: |
           # Get the last tag to determine what's new
           last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          
+
           if [ -n "$last_tag" ]; then
             echo "Generating release notes since tag: $last_tag"
             commit_range="$last_tag..HEAD"
@@ -70,17 +69,17 @@ jobs:
             echo "No previous tag found, generating from all commits"
             commit_range="HEAD"
           fi
-          
+
           # Initialize release notes
           release_notes="Release v${{ steps.gitversion.outputs.semVer }} generated from commit ${{ github.sha }}."
           release_notes="${release_notes}\n\n## Changes\n"
-          
+
           # Function to add section if commits exist
           add_section() {
             local title="$1"
             local pattern="$2"
             local commits=$(git log $commit_range --oneline --grep="$pattern" 2>/dev/null || true)
-            
+
             if [ -n "$commits" ]; then
               release_notes="${release_notes}\n### ${title}\n"
               while IFS= read -r commit; do
@@ -92,38 +91,38 @@ jobs:
               done <<< "$commits"
             fi
           }
-          
+
           # Add sections for different commit types
           add_section "🚀 Features" "^feat"
           add_section "🐛 Bug Fixes" "^fix"
           add_section "📚 Documentation" "^docs"
           add_section "🔧 Maintenance" "^chore\|^build\|^ci\|^refactor\|^style\|^test\|^perf"
-          
+
           # Add Extended Commit Descriptions section
           release_notes="${release_notes}\n## Extended Commit Descriptions\n"
           release_notes="${release_notes}\nThis section provides detailed commit information for all changes included in this release.\n"
-          
+
           # Get all commits in the range with full messages
           if [ -n "$last_tag" ]; then
             all_commits=$(git log $commit_range --format="%h %s" --reverse 2>/dev/null || true)
           else
             all_commits=$(git log --format="%h %s" --reverse 2>/dev/null || true)
           fi
-          
+
           if [ -n "$all_commits" ]; then
             while IFS= read -r commit; do
               if [ -n "$commit" ]; then
                 # Extract commit hash and subject
                 commit_hash=$(echo "$commit" | cut -d' ' -f1)
                 commit_subject=$(echo "$commit" | cut -d' ' -f2-)
-                
+
                 # Get full commit message including body
                 commit_body=$(git log --format="%B" -n 1 "$commit_hash" 2>/dev/null || true)
-                
+
                 # Add commit info to release notes
                 release_notes="${release_notes}\n### ${commit_subject}"
                 release_notes="${release_notes}\n**Commit:** \`${commit_hash}\`\n"
-                
+
                 # Add full commit message if it has more than just the subject line
                 if [ "$(echo "$commit_body" | wc -l)" -gt 1 ]; then
                   # Remove the subject line since we already have it, and add the body
@@ -138,10 +137,10 @@ jobs:
               fi
             done <<< "$all_commits"
           fi
-          
+
           # Add footer with commit history link
           release_notes="${release_notes}\n**Full Changelog**: [View all commits](https://github.com/${{ github.repository }}/commits/v${{ steps.gitversion.outputs.semVer }})"
-          
+
           # Save to output
           echo "release_notes<<EOF" >> $GITHUB_OUTPUT
           echo -e "$release_notes" >> $GITHUB_OUTPUT
