@@ -90,4 +90,4 @@ dotnet test --verbosity normal
 - **Azure DevOps**: SonarCloud analysis and Qodana scanning  
 - **Versioned Artifacts**: All builds tagged with semantic versions
 - **Automated Releases**: Created for master branch with automated changelog
-- **Automated Changelog**: Generated from conventional commits for each release
+- **Automated Changelog**: Generated from conventional commits in pull requests, included in PR diffs before merge
