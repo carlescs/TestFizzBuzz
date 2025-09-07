@@ -67,7 +67,7 @@ jobs:
           body: |
             Release v${{ steps.gitversion.outputs.semVer }} generated from commit ${{ github.sha }}.
             
-            See the [commit history](https://github.com/${{ github.repository }}/compare/v${{ steps.gitversion.outputs.semVer }}...master) for detailed changes.
+            View the [commits included in this release](https://github.com/${{ github.repository }}/commits/v${{ steps.gitversion.outputs.semVer }}).
           draft: false
           prerelease: ${{ contains(steps.gitversion.outputs.semVer, '-') }}
 
