@@ -54,6 +54,22 @@ When code is pushed to the `master` branch:
 - Use `[skip-release]` in commit message to prevent release creation
 - The system preserves historical changelog entries
 
+## Integration with Existing Workflows
+
+### GitHub Actions Integration
+The automated changelog generation is integrated into the existing `.github/workflows/dotnet.yml` workflow:
+
+1. **Existing Steps Preserved**: All existing build, test, and GitVersion steps remain unchanged
+2. **New Steps Added**: Changelog generation occurs after testing but before release creation
+3. **Conditional Execution**: Changelog updates only run on master branch commits
+4. **Skip Mechanism**: Commits with `[skip-release]` bypass both changelog and release creation
+
+### Azure DevOps Compatibility  
+The automation doesn't interfere with the existing `azure-pipelines.yml`:
+- Azure pipeline continues to work with SonarCloud and Qodana analysis
+- Version calculation remains consistent between platforms
+- No additional dependencies or configurations required
+
 ## Configuration
 
 ### GitVersion Integration
@@ -62,8 +78,20 @@ The system works alongside the existing GitVersion configuration:
 - Changelog generation uses the calculated version
 - Both processes share the same conventional commit parsing
 
-### Customization
-To modify the changelog format or categories, edit the changelog generation logic in `.github/workflows/dotnet.yml`.
+### Workflow Customization
+To modify the changelog format or categories, edit the changelog generation logic in `.github/workflows/dotnet.yml`:
+
+- **Commit Categories**: Modify the `git log --grep` patterns to change which commit types are included
+- **Section Headers**: Update the section titles (Features, Bug Fixes, etc.)
+- **Formatting**: Adjust the sed commands to change how commits are formatted in the changelog
+- **Date Format**: Modify the `date +%Y-%m-%d` format in the changelog header
+
+### Repository Settings
+Ensure the following repository settings for proper operation:
+
+- **Branch Protection**: Configure master branch protection if desired
+- **GitHub Actions Permissions**: Verify `contents: write` permission is granted
+- **Conventional Commits**: Team should follow conventional commit guidelines
 
 ## Troubleshooting
 

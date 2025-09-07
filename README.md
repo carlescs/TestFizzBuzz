@@ -46,7 +46,8 @@ feat!: change return type to async         # Major version bump
 docs: update README with examples          # No version bump
 ```
 
-**📖 See [Semantic Commits Guide](docs/SEMANTIC_COMMITS.md) for detailed documentation**
+**📖 See [Semantic Commits Guide](docs/SEMANTIC_COMMITS.md) for detailed conventional commits documentation**  
+**📖 See [Changelog Automation Guide](docs/CHANGELOG_AUTOMATION.md) for automated changelog documentation**
 
 ## Versioning
 
@@ -85,7 +86,8 @@ dotnet test --verbosity normal
 
 ## CI/CD
 
-- **GitHub Actions**: Automated builds, tests, and releases
-- **Azure DevOps**: SonarCloud analysis and Qodana scanning
+- **GitHub Actions**: Automated builds, tests, releases, and changelog generation
+- **Azure DevOps**: SonarCloud analysis and Qodana scanning  
 - **Versioned Artifacts**: All builds tagged with semantic versions
-- **Automated Releases**: Created for master branch with semantic versions
+- **Automated Releases**: Created for master branch with automated changelog
+- **Automated Changelog**: Generated from conventional commits for each release

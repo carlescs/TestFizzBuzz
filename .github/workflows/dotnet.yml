@@ -6,9 +6,9 @@ permissions:
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   build:
@@ -16,205 +16,213 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required for GitVersion
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v1.1.1
+        with:
+          versionSpec: '5.12.0'
+
+      - name: Determine Version
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v1.1.1
+        with:
+          useConfigFile: true
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: |
+          dotnet build --no-restore --configuration Release \
+          /p:Version=${{ steps.gitversion.outputs.assemblySemVer }} \
+          /p:AssemblyVersion=${{ steps.gitversion.outputs.assemblySemVer }} \
+          /p:FileVersion=${{ steps.gitversion.outputs.assemblySemFileVer }}
+
+      - name: Test
+        run: dotnet test --no-build --configuration Release --verbosity normal
     
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # Required for GitVersion
-    
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 9.0.x
-    
-    - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v1.1.1
-      with:
-        versionSpec: '5.12.0'
-    
-    - name: Determine Version
-      id: gitversion
-      uses: gittools/actions/gitversion/execute@v1.1.1
-      with:
-        useConfigFile: true
-    
-    - name: Restore dependencies
-      run: dotnet restore
-    
-    - name: Build
-      run: dotnet build --no-restore --configuration Release /p:Version=${{ steps.gitversion.outputs.assemblySemVer }} /p:AssemblyVersion=${{ steps.gitversion.outputs.assemblySemVer }} /p:FileVersion=${{ steps.gitversion.outputs.assemblySemFileVer }}
-    
-    - name: Test
-      run: dotnet test --no-build --configuration Release --verbosity normal
-    
-    - name: Generate Changelog
-      if: github.ref == 'refs/heads/master'
-      run: |
-        # Create a simple changelog from conventional commits
-        echo "Generating changelog from commit history..."
-        
-        # Get the last tag to determine what's new
-        last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-        
-        if [ -n "$last_tag" ]; then
-          echo "Generating changelog since tag: $last_tag"
-          commit_range="$last_tag..HEAD"
-        else
-          echo "No previous tag found, generating changelog from all commits"
-          commit_range="HEAD"
-        fi
-        
-        # Generate changelog content
-        cat > CHANGELOG_TEMP.md << 'EOF'
-        ### Features
-        EOF
-        
-        git log $commit_range --oneline --grep="^feat" --grep="^feat(" >> temp_feat.log 2>/dev/null || true
-        if [ -s temp_feat.log ]; then
-          sed 's/^[a-f0-9]* /- /' temp_feat.log >> CHANGELOG_TEMP.md
-        else
-          echo "- No new features" >> CHANGELOG_TEMP.md
-        fi
-        
-        cat >> CHANGELOG_TEMP.md << 'EOF'
-        
-        ### Bug Fixes
-        EOF
-        
-        git log $commit_range --oneline --grep="^fix" --grep="^fix(" >> temp_fix.log 2>/dev/null || true
-        if [ -s temp_fix.log ]; then
-          sed 's/^[a-f0-9]* /- /' temp_fix.log >> CHANGELOG_TEMP.md
-        else
-          echo "- No bug fixes" >> CHANGELOG_TEMP.md
-        fi
-        
-        cat >> CHANGELOG_TEMP.md << 'EOF'
-        
-        ### Documentation
-        EOF
-        
-        git log $commit_range --oneline --grep="^docs" --grep="^docs(" >> temp_docs.log 2>/dev/null || true
-        if [ -s temp_docs.log ]; then
-          sed 's/^[a-f0-9]* /- /' temp_docs.log >> CHANGELOG_TEMP.md
-        else
-          echo "- No documentation changes" >> CHANGELOG_TEMP.md
-        fi
-        
-        cat >> CHANGELOG_TEMP.md << 'EOF'
-        
-        ### Maintenance
-        EOF
-        
-        git log $commit_range --oneline --grep="^chore\|^build\|^ci\|^refactor\|^style\|^test\|^perf" >> temp_maint.log 2>/dev/null || true
-        if [ -s temp_maint.log ]; then
-          sed 's/^[a-f0-9]* /- /' temp_maint.log >> CHANGELOG_TEMP.md
-        else
-          echo "- No maintenance changes" >> CHANGELOG_TEMP.md
-        fi
-        
-        # Clean up temp files
-        rm -f temp_*.log
-        
-        echo "Generated changelog content:"
-        cat CHANGELOG_TEMP.md
-    
-    - name: Update Changelog
-      if: github.ref == 'refs/heads/master'
-      run: |
-        if [ -f CHANGELOG_TEMP.md ]; then
-          # Read the current changelog (skip the header)
-          if [ -f CHANGELOG.md ]; then
-            current_content=$(tail -n +8 CHANGELOG.md 2>/dev/null || echo "")
+      - name: Generate Changelog
+        if: github.ref == 'refs/heads/master'
+        run: |
+          # Create a simple changelog from conventional commits
+          echo "Generating changelog from commit history..."
+
+          # Get the last tag to determine what's new
+          last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
+          if [ -n "$last_tag" ]; then
+            echo "Generating changelog since tag: $last_tag"
+            commit_range="$last_tag..HEAD"
           else
-            current_content=""
+            echo "No previous tag found, generating from all commits"
+            commit_range="HEAD"
           fi
-          
-          # Create new changelog with the new version entry
-          cat > CHANGELOG.md << EOF
-        # Changelog
 
-        All notable changes to this project will be documented in this file.
+          # Generate changelog content
+          cat > CHANGELOG_TEMP.md << 'EOF'
+          ### Features
+          EOF
 
-        The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-        and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-        This changelog is automatically generated from [Conventional Commits](https://www.conventionalcommits.org/).
-
-        ## [${{ steps.gitversion.outputs.semVer }}] - $(date +%Y-%m-%d)
-
-        $(cat CHANGELOG_TEMP.md)
-
-        $current_content
-        EOF
-          
-          rm -f CHANGELOG_TEMP.md
-          
-          echo "Updated CHANGELOG.md:"
-          head -20 CHANGELOG.md
-        fi
-    
-    - name: Commit Updated Changelog
-      if: github.ref == 'refs/heads/master'
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add CHANGELOG.md
-        if git diff --staged --quiet; then
-          echo "No changelog changes to commit"
-        else
-          git commit -m "docs: update changelog for v${{ steps.gitversion.outputs.semVer }} [skip-release]"
-          git push
-        fi
-    
-    - name: Publish Test Results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: test-results
-        path: TestResults
-    
-    - name: Extract Latest Changelog
-      if: github.ref == 'refs/heads/master' && !contains(github.event.head_commit.message, 'skip-release')
-      id: changelog
-      run: |
-        # Extract the latest version section from CHANGELOG.md
-        if [ -f CHANGELOG.md ]; then
-          # Get content between the first two version headers or until the end
-          changelog_content=$(awk '/^## \[.*\]/ {if(++count==1) {found=1; next} else {exit}} found {print}' CHANGELOG.md)
-          if [ -z "$changelog_content" ]; then
-            changelog_content="This release was automatically generated from commit ${{ github.sha }}."
+          git log $commit_range --oneline --grep="^feat" --grep="^feat(" \
+            >> temp_feat.log 2>/dev/null || true
+          if [ -s temp_feat.log ]; then
+            sed 's/^[a-f0-9]* /- /' temp_feat.log >> CHANGELOG_TEMP.md
+          else
+            echo "- No new features" >> CHANGELOG_TEMP.md
           fi
-          # Escape content for GitHub Actions output
-          echo "content<<EOF" >> $GITHUB_OUTPUT
-          echo "$changelog_content" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-        else
-          echo "content=This release was automatically generated from commit ${{ github.sha }}." >> $GITHUB_OUTPUT
-        fi
+
+          cat >> CHANGELOG_TEMP.md << 'EOF'
+
+          ### Bug Fixes
+          EOF
+
+          git log $commit_range --oneline --grep="^fix" --grep="^fix(" \
+            >> temp_fix.log 2>/dev/null || true
+          if [ -s temp_fix.log ]; then
+            sed 's/^[a-f0-9]* /- /' temp_fix.log >> CHANGELOG_TEMP.md
+          else
+            echo "- No bug fixes" >> CHANGELOG_TEMP.md
+          fi
+
+          cat >> CHANGELOG_TEMP.md << 'EOF'
+
+          ### Documentation
+          EOF
+
+          git log $commit_range --oneline --grep="^docs" --grep="^docs(" \
+            >> temp_docs.log 2>/dev/null || true
+          if [ -s temp_docs.log ]; then
+            sed 's/^[a-f0-9]* /- /' temp_docs.log >> CHANGELOG_TEMP.md
+          else
+            echo "- No documentation changes" >> CHANGELOG_TEMP.md
+          fi
+
+          cat >> CHANGELOG_TEMP.md << 'EOF'
+
+          ### Maintenance
+          EOF
+
+          git log $commit_range --oneline \
+            --grep="^chore\|^build\|^ci\|^refactor\|^style\|^test\|^perf" \
+            >> temp_maint.log 2>/dev/null || true
+          if [ -s temp_maint.log ]; then
+            sed 's/^[a-f0-9]* /- /' temp_maint.log >> CHANGELOG_TEMP.md
+          else
+            echo "- No maintenance changes" >> CHANGELOG_TEMP.md
+          fi
+
+          # Clean up temp files
+          rm -f temp_*.log
+
+          echo "Generated changelog content:"
+          cat CHANGELOG_TEMP.md
     
-    - name: Create Release
-      if: github.ref == 'refs/heads/master' && !contains(github.event.head_commit.message, 'skip-release')
-      uses: softprops/action-gh-release@v2
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: v${{ steps.gitversion.outputs.semVer }}
-        name: Release v${{ steps.gitversion.outputs.semVer }}
-        body: |
-          ## Version ${{ steps.gitversion.outputs.semVer }}
-          
-          **Full Semantic Version:** ${{ steps.gitversion.outputs.fullSemVer }}
-          **Assembly Version:** ${{ steps.gitversion.outputs.assemblySemVer }}
-          
-          ### Changes
-          ${{ steps.changelog.outputs.content }}
-        draft: false
-        prerelease: ${{ contains(steps.gitversion.outputs.semVer, '-') }}
+      - name: Update Changelog
+        if: github.ref == 'refs/heads/master'
+        run: |
+          if [ -f CHANGELOG_TEMP.md ]; then
+            # Read the current changelog (skip the header)
+            if [ -f CHANGELOG.md ]; then
+              current_content=$(tail -n +8 CHANGELOG.md 2>/dev/null || echo "")
+            else
+              current_content=""
+            fi
+
+            # Create new changelog with the new version entry
+            cat > CHANGELOG.md << EOF
+          # Changelog
+
+          All notable changes to this project will be documented in this file.
+
+          The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+          and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+          This changelog is automatically generated from [Conventional Commits](https://www.conventionalcommits.org/).
+
+          ## [${{ steps.gitversion.outputs.semVer }}] - $(date +%Y-%m-%d)
+
+          $(cat CHANGELOG_TEMP.md)
+
+          $current_content
+          EOF
+
+            rm -f CHANGELOG_TEMP.md
+
+            echo "Updated CHANGELOG.md:"
+            head -20 CHANGELOG.md
+          fi
+
+      - name: Commit Updated Changelog
+        if: github.ref == 'refs/heads/master'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add CHANGELOG.md
+          if git diff --staged --quiet; then
+            echo "No changelog changes to commit"
+          else
+            git commit -m "docs: update changelog for v${{ steps.gitversion.outputs.semVer }} [skip-release]"
+            git push
+          fi
     
-    - name: Upload Build Artifacts
-      if: github.ref == 'refs/heads/master'
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-artifacts-v${{ steps.gitversion.outputs.semVer }}
-        path: |
-          TestFizzBuzz/bin/Release/
-          TestFizzBuzz.Tests/bin/Release/
+      - name: Publish Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: TestResults
+
+      - name: Extract Latest Changelog
+        if: github.ref == 'refs/heads/master' && !contains(github.event.head_commit.message, 'skip-release')
+        id: changelog
+        run: |
+          # Extract the latest version section from CHANGELOG.md
+          if [ -f CHANGELOG.md ]; then
+            # Get content between the first two version headers or until the end
+            changelog_content=$(awk '/^## \[.*\]/ {if(++count==1) {found=1; next} else {exit}} found {print}' CHANGELOG.md)
+            if [ -z "$changelog_content" ]; then
+              changelog_content="This release was automatically generated from commit ${{ github.sha }}."
+            fi
+            # Escape content for GitHub Actions output
+            echo "content<<EOF" >> $GITHUB_OUTPUT
+            echo "$changelog_content" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "content=This release was automatically generated from commit ${{ github.sha }}." >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Release
+        if: github.ref == 'refs/heads/master' && !contains(github.event.head_commit.message, 'skip-release')
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.gitversion.outputs.semVer }}
+          name: Release v${{ steps.gitversion.outputs.semVer }}
+          body: |
+            ## Version ${{ steps.gitversion.outputs.semVer }}
+
+            **Full Semantic Version:** ${{ steps.gitversion.outputs.fullSemVer }}
+            **Assembly Version:** ${{ steps.gitversion.outputs.assemblySemVer }}
+
+            ### Changes
+            ${{ steps.changelog.outputs.content }}
+          draft: false
+          prerelease: ${{ contains(steps.gitversion.outputs.semVer, '-') }}
+
+      - name: Upload Build Artifacts
+        if: github.ref == 'refs/heads/master'
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-v${{ steps.gitversion.outputs.semVer }}
+          path: |
+            TestFizzBuzz/bin/Release/
+            TestFizzBuzz.Tests/bin/Release/
