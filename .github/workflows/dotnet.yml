@@ -50,10 +50,10 @@ jobs:
         run: dotnet test --no-build --configuration Release --verbosity normal
     
       - name: Generate Changelog
-        if: github.ref == 'refs/heads/master'
+        if: github.event_name == 'pull_request' && github.base_ref == 'master'
         run: |
-          # Create a simple changelog from conventional commits
-          echo "Generating changelog from commit history..."
+          # Create a simple changelog from conventional commits for PR
+          echo "Generating changelog from commit history for PR..."
 
           # Get the last tag to determine what's new
           last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
@@ -126,12 +126,12 @@ jobs:
           cat CHANGELOG_TEMP.md
     
       - name: Update Changelog
-        if: github.ref == 'refs/heads/master'
+        if: github.event_name == 'pull_request' && github.base_ref == 'master'
         run: |
           if [ -f CHANGELOG_TEMP.md ]; then
             # Read the current changelog (skip the header)
             if [ -f CHANGELOG.md ]; then
-              current_content=$(tail -n +8 CHANGELOG.md 2>/dev/null || echo "")
+              current_content=$(tail -n +10 CHANGELOG.md 2>/dev/null || echo "")
             else
               current_content=""
             fi
@@ -161,7 +161,7 @@ jobs:
           fi
 
       - name: Commit Updated Changelog
-        if: github.ref == 'refs/heads/master'
+        if: github.event_name == 'pull_request' && github.base_ref == 'master'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
@@ -170,7 +170,8 @@ jobs:
             echo "No changelog changes to commit"
           else
             git commit -m "docs: update changelog for v${{ steps.gitversion.outputs.semVer }} [skip-release]"
-            git push
+            # Push to the PR branch
+            git push origin HEAD:${{ github.head_ref }}
           fi
     
       - name: Publish Test Results
