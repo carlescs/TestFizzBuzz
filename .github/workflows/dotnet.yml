@@ -49,131 +49,6 @@ jobs:
       - name: Test
         run: dotnet test --no-build --configuration Release --verbosity normal
     
-      - name: Generate Changelog
-        if: github.event_name == 'pull_request' && github.base_ref == 'master'
-        run: |
-          # Create a simple changelog from conventional commits for PR
-          echo "Generating changelog from commit history for PR..."
-
-          # Get the last tag to determine what's new
-          last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-
-          if [ -n "$last_tag" ]; then
-            echo "Generating changelog since tag: $last_tag"
-            commit_range="$last_tag..HEAD"
-          else
-            echo "No previous tag found, generating from all commits"
-            commit_range="HEAD"
-          fi
-
-          # Generate changelog content
-          cat > CHANGELOG_TEMP.md << 'EOF'
-          ### Features
-          EOF
-
-          git log $commit_range --oneline --grep="^feat" --grep="^feat(" \
-            >> temp_feat.log 2>/dev/null || true
-          if [ -s temp_feat.log ]; then
-            sed 's/^[a-f0-9]* /- /' temp_feat.log >> CHANGELOG_TEMP.md
-          else
-            echo "- No new features" >> CHANGELOG_TEMP.md
-          fi
-
-          cat >> CHANGELOG_TEMP.md << 'EOF'
-
-          ### Bug Fixes
-          EOF
-
-          git log $commit_range --oneline --grep="^fix" --grep="^fix(" \
-            >> temp_fix.log 2>/dev/null || true
-          if [ -s temp_fix.log ]; then
-            sed 's/^[a-f0-9]* /- /' temp_fix.log >> CHANGELOG_TEMP.md
-          else
-            echo "- No bug fixes" >> CHANGELOG_TEMP.md
-          fi
-
-          cat >> CHANGELOG_TEMP.md << 'EOF'
-
-          ### Documentation
-          EOF
-
-          git log $commit_range --oneline --grep="^docs" --grep="^docs(" \
-            >> temp_docs.log 2>/dev/null || true
-          if [ -s temp_docs.log ]; then
-            sed 's/^[a-f0-9]* /- /' temp_docs.log >> CHANGELOG_TEMP.md
-          else
-            echo "- No documentation changes" >> CHANGELOG_TEMP.md
-          fi
-
-          cat >> CHANGELOG_TEMP.md << 'EOF'
-
-          ### Maintenance
-          EOF
-
-          git log $commit_range --oneline \
-            --grep="^chore\|^build\|^ci\|^refactor\|^style\|^test\|^perf" \
-            >> temp_maint.log 2>/dev/null || true
-          if [ -s temp_maint.log ]; then
-            sed 's/^[a-f0-9]* /- /' temp_maint.log >> CHANGELOG_TEMP.md
-          else
-            echo "- No maintenance changes" >> CHANGELOG_TEMP.md
-          fi
-
-          # Clean up temp files
-          rm -f temp_*.log
-
-          echo "Generated changelog content:"
-          cat CHANGELOG_TEMP.md
-    
-      - name: Update Changelog
-        if: github.event_name == 'pull_request' && github.base_ref == 'master'
-        run: |
-          if [ -f CHANGELOG_TEMP.md ]; then
-            # Read the current changelog (skip the header)
-            if [ -f CHANGELOG.md ]; then
-              current_content=$(tail -n +10 CHANGELOG.md 2>/dev/null || echo "")
-            else
-              current_content=""
-            fi
-
-            # Create new changelog with the new version entry
-            cat > CHANGELOG.md << EOF
-          # Changelog
-
-          All notable changes to this project will be documented in this file.
-
-          The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-          and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-          This changelog is automatically generated from [Conventional Commits](https://www.conventionalcommits.org/).
-
-          ## [${{ steps.gitversion.outputs.semVer }}] - $(date +%Y-%m-%d)
-
-          $(cat CHANGELOG_TEMP.md)
-
-          $current_content
-          EOF
-
-            rm -f CHANGELOG_TEMP.md
-
-            echo "Updated CHANGELOG.md:"
-            head -20 CHANGELOG.md
-          fi
-
-      - name: Commit Updated Changelog
-        if: github.event_name == 'pull_request' && github.base_ref == 'master'
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add CHANGELOG.md
-          if git diff --staged --quiet; then
-            echo "No changelog changes to commit"
-          else
-            git commit -m "docs: update changelog for v${{ steps.gitversion.outputs.semVer }} [skip-release]"
-            # Push to the PR branch
-            git push origin HEAD:${{ github.head_ref }}
-          fi
-    
       - name: Publish Test Results
         uses: actions/upload-artifact@v4
         if: always()
@@ -181,24 +56,57 @@ jobs:
           name: test-results
           path: TestResults
 
-      - name: Extract Latest Changelog
+      - name: Generate Release Notes
         if: github.ref == 'refs/heads/master' && !contains(github.event.head_commit.message, 'skip-release')
-        id: changelog
+        id: release_notes
         run: |
-          # Extract the latest version section from CHANGELOG.md
-          if [ -f CHANGELOG.md ]; then
-            # Get content between the first two version headers or until the end
-            changelog_content=$(awk '/^## \[.*\]/ {if(++count==1) {found=1; next} else {exit}} found {print}' CHANGELOG.md)
-            if [ -z "$changelog_content" ]; then
-              changelog_content="This release was automatically generated from commit ${{ github.sha }}."
-            fi
-            # Escape content for GitHub Actions output
-            echo "content<<EOF" >> $GITHUB_OUTPUT
-            echo "$changelog_content" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
+          # Get the last tag to determine what's new
+          last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          if [ -n "$last_tag" ]; then
+            echo "Generating release notes since tag: $last_tag"
+            commit_range="$last_tag..HEAD"
           else
-            echo "content=This release was automatically generated from commit ${{ github.sha }}." >> $GITHUB_OUTPUT
+            echo "No previous tag found, generating from all commits"
+            commit_range="HEAD"
           fi
+          
+          # Initialize release notes
+          release_notes="Release v${{ steps.gitversion.outputs.semVer }} generated from commit ${{ github.sha }}."
+          release_notes="${release_notes}\n\n## Changes\n"
+          
+          # Function to add section if commits exist
+          add_section() {
+            local title="$1"
+            local pattern="$2"
+            local commits=$(git log $commit_range --oneline --grep="$pattern" 2>/dev/null || true)
+            
+            if [ -n "$commits" ]; then
+              release_notes="${release_notes}\n### ${title}\n"
+              while IFS= read -r commit; do
+                if [ -n "$commit" ]; then
+                  # Extract commit message without hash
+                  message=$(echo "$commit" | sed 's/^[a-f0-9]* //')
+                  release_notes="${release_notes}- ${message}\n"
+                fi
+              done <<< "$commits"
+            fi
+          }
+          
+          # Add sections for different commit types
+          add_section "🚀 Features" "^feat"
+          add_section "🐛 Bug Fixes" "^fix"
+          add_section "📚 Documentation" "^docs"
+          add_section "🔧 Maintenance" "^chore\|^build\|^ci\|^refactor\|^style\|^test\|^perf"
+          
+          # Add footer with commit history link
+          release_notes="${release_notes}\n---\n"
+          release_notes="${release_notes}**Full Changelog**: [View all commits](https://github.com/${{ github.repository }}/commits/v${{ steps.gitversion.outputs.semVer }})"
+          
+          # Save to output
+          echo "release_notes<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$release_notes" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create Release
         if: github.ref == 'refs/heads/master' && !contains(github.event.head_commit.message, 'skip-release')
@@ -208,14 +116,7 @@ jobs:
         with:
           tag_name: v${{ steps.gitversion.outputs.semVer }}
           name: Release v${{ steps.gitversion.outputs.semVer }}
-          body: |
-            ## Version ${{ steps.gitversion.outputs.semVer }}
-
-            **Full Semantic Version:** ${{ steps.gitversion.outputs.fullSemVer }}
-            **Assembly Version:** ${{ steps.gitversion.outputs.assemblySemVer }}
-
-            ### Changes
-            ${{ steps.changelog.outputs.content }}
+          body: ${{ steps.release_notes.outputs.release_notes }}
           draft: false
           prerelease: ${{ contains(steps.gitversion.outputs.semVer, '-') }}
 
