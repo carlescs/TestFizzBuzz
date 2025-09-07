@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This changelog is automatically generated from [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.0.2-PullRequest0060.8] - 2025-09-07
+
+### Features
+- Merge pull request #58 from carlescs/copilot/fix-57
+- feat: implement automated changelog and release notes generation
+
+### Bug Fixes
+- No bug fixes
+
+### Documentation
+- docs: update documentation for PR-based changelog workflow
+- docs: finalize automated changelog implementation and documentation
+
+### Maintenance
+- ci: move changelog generation from master to PR workflow
+
 ## [1.0.1] - 2024-12-19
 
 ### Dependencies
