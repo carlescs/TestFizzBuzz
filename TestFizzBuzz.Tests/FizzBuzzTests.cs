@@ -82,4 +82,30 @@ public class FizzBuzzTests
         var resBoth = list.FizzBuzz(_ => true, _ => true).ToArray();
         Assert.All(resBoth, s => Assert.Equal("FizzBuzz", s));
     }
+
+    // New test: int overload with custom labels
+    [Fact]
+    public void FizzBuzz_IntCustomLabels()
+    {
+        var elems = Enumerable.Range(0, 16).ToArray();
+        var res = elems.FizzBuzz("F", "B").ToArray();
+
+        Assert.Equal("F", res[3]);
+        Assert.Equal("B", res[5]);
+        Assert.Equal("FB", res[15]);
+        Assert.Equal("1", res[1]);
+    }
+
+    // New test: generic overload with custom labels
+    [Fact]
+    public void FizzBuzz_GenericCustomLabels()
+    {
+        var elems = Enumerable.Range(0, 100).Select(t => t.ToString()).ToArray();
+        var res = elems.FizzBuzz(t => t.EndsWith('3'), t => t.EndsWith('5'), "X", "Y").ToArray();
+
+        Assert.Equal("X", res[3]);
+        Assert.Equal("Y", res[5]);
+        Assert.Equal("Y", res[15]);
+        Assert.Equal("21", res[21]);
+    }
 }
