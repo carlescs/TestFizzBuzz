@@ -17,13 +17,13 @@ The system analyzes commit messages following the [Conventional Commits](https:/
 - **Maintenance** (`chore:`, `build:`, `ci:`, `refactor:`, `style:`, `test:`, `perf:`): Maintenance tasks
 
 ### 2. Automated Process
-When code is pushed to the `master` branch:
+When a pull request is created targeting the `master` branch:
 
 1. **Version Calculation**: GitVersion calculates the semantic version based on commit messages
 2. **Changelog Generation**: The system generates changelog content from commits since the last release
 3. **File Update**: `CHANGELOG.md` is automatically updated with the new version entry
-4. **Commit**: Changes are committed back to the repository with `[skip-release]` flag
-5. **Release Creation**: A GitHub release is created with the generated changelog as release notes
+4. **PR Commit**: Changes are committed to the PR branch with `[skip-release]` flag
+5. **Release Creation**: When merged to master, a GitHub release is created with the generated changelog as release notes
 
 ### 3. File Structure
 - `CHANGELOG.md`: Automatically maintained changelog file
@@ -60,9 +60,9 @@ When code is pushed to the `master` branch:
 The automated changelog generation is integrated into the existing `.github/workflows/dotnet.yml` workflow:
 
 1. **Existing Steps Preserved**: All existing build, test, and GitVersion steps remain unchanged
-2. **New Steps Added**: Changelog generation occurs after testing but before release creation
-3. **Conditional Execution**: Changelog updates only run on master branch commits
-4. **Skip Mechanism**: Commits with `[skip-release]` bypass both changelog and release creation
+2. **New Steps Added**: Changelog generation occurs during pull request workflow for PRs targeting master
+3. **PR Workflow**: Changelog updates run on pull requests targeting master, not on master itself
+4. **Skip Mechanism**: Commits with `[skip-release]` bypass changelog generation
 
 ### Azure DevOps Compatibility  
 The automation doesn't interfere with the existing `azure-pipelines.yml`:
@@ -89,8 +89,9 @@ To modify the changelog format or categories, edit the changelog generation logi
 ### Repository Settings
 Ensure the following repository settings for proper operation:
 
-- **Branch Protection**: Configure master branch protection if desired
+- **Branch Protection**: Configure master branch protection as desired - changelog generation works with protected branches
 - **GitHub Actions Permissions**: Verify `contents: write` permission is granted
+- **Pull Request Workflow**: Ensure PR workflow can commit to PR branches
 - **Conventional Commits**: Team should follow conventional commit guidelines
 
 ## Troubleshooting
@@ -99,13 +100,15 @@ Ensure the following repository settings for proper operation:
 
 **Changelog not updating**
 - Verify conventional commit format in recent commits
-- Check GitHub Actions workflow logs
+- Check GitHub Actions workflow logs for PR workflows
 - Ensure `contents: write` permission is set in workflow
+- Verify PR is targeting master branch
 
 **Release not created**
 - Check if commit message contains `[skip-release]`
-- Verify workflow runs on master branch
+- Verify workflow runs on master branch after PR merge
 - Review GitHub Actions permissions
+- Ensure CHANGELOG.md was properly committed in the PR
 
 **Missing commit categories**
 - Verify commit messages follow conventional format
