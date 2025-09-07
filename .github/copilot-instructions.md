@@ -92,3 +92,72 @@ The project uses minimal dependencies:
   - `FizzBuzz<T>(IEnumerable<T>, Predicate<T>, Predicate<T>)` - generic version with custom predicates
   - `FizzBuzz(IEnumerable<int>)` - convenience method for standard divisibility rules (3 and 5)
 - **Key Logic**: Uses `StringBuilder` for efficient string concatenation in `FizzBuzzElem` method
+
+## Semantic Commit Guidelines
+
+This project follows **Conventional Commits** specification for semantic commits and automated versioning.
+
+### Commit Message Format
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+### Commit Types
+- **feat**: A new feature (triggers minor version bump)
+- **fix**: A bug fix (triggers patch version bump)  
+- **docs**: Documentation only changes
+- **style**: Changes that do not affect the meaning of the code (white-space, formatting, etc.)
+- **refactor**: A code change that neither fixes a bug nor adds a feature
+- **perf**: A code change that improves performance
+- **test**: Adding missing tests or correcting existing tests
+- **build**: Changes that affect the build system or external dependencies
+- **ci**: Changes to CI configuration files and scripts
+- **chore**: Other changes that don't modify src or test files
+
+### Breaking Changes
+- Add `BREAKING CHANGE:` in the footer or append `!` after the type/scope
+- Triggers major version bump
+- Example: `feat!: remove deprecated FizzBuzz overload`
+
+### Commit Message Examples
+```bash
+# Feature with detailed body
+feat: add generic FizzBuzz method with custom predicates
+
+This commit introduces a new generic extension method that allows
+users to define custom predicates for Fizz and Buzz conditions,
+making the FizzBuzz algorithm more flexible and reusable.
+
+- Added FizzBuzz<T>(IEnumerable<T>, Predicate<T>, Predicate<T>) method
+- Maintained backward compatibility with existing int-based method
+- Updated unit tests to cover new functionality
+
+# Bug fix
+fix: handle null input in FizzBuzz extension method
+
+# Documentation update  
+docs: update README with usage examples
+
+# Breaking change
+feat!: change FizzBuzz return type to IAsyncEnumerable
+
+BREAKING CHANGE: FizzBuzz methods now return IAsyncEnumerable<string> 
+instead of IEnumerable<string> to support async scenarios
+```
+
+### Copilot Commit Instructions
+When creating commits, **always**:
+1. **Use semantic commit format** with appropriate type prefix
+2. **Write detailed commit body** explaining:
+   - What was changed and why
+   - Any important implementation details  
+   - Impact on existing functionality
+   - Links to related issues or documentation
+3. **Keep subject line under 50 characters**
+4. **Wrap body text at 72 characters**
+5. **Use imperative mood** in subject line ("add feature" not "added feature")
+6. **Reference issues** in footer when applicable ("Fixes #123", "Closes #456")

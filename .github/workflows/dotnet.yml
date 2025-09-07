@@ -1,7 +1,8 @@
 name: .NET
 
 permissions:
-  contents: read
+  contents: write  # Required for creating releases
+  pull-requests: read
 
 on:
   push:
@@ -17,16 +18,33 @@ jobs:
     steps:
     
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Required for GitVersion
+    
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.0.x
+    
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v1.1.1
+      with:
+        versionSpec: '5.12.0'
+    
+    - name: Determine Version
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@v1.1.1
+      with:
+        useConfigFile: true
+    
     - name: Restore dependencies
       run: dotnet restore
+    
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore --configuration Release /p:Version=${{ steps.gitversion.outputs.assemblySemVer }} /p:AssemblyVersion=${{ steps.gitversion.outputs.assemblySemVer }} /p:FileVersion=${{ steps.gitversion.outputs.assemblySemFileVer }}
+    
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test --no-build --configuration Release --verbosity normal
     
     - name: Publish Test Results
       uses: actions/upload-artifact@v4
@@ -34,3 +52,31 @@ jobs:
       with:
         name: test-results
         path: TestResults
+    
+    - name: Create Release
+      if: github.ref == 'refs/heads/master' && !contains(github.event.head_commit.message, 'skip-release')
+      uses: softprops/action-gh-release@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ steps.gitversion.outputs.semVer }}
+        name: Release v${{ steps.gitversion.outputs.semVer }}
+        body: |
+          ## Version ${{ steps.gitversion.outputs.semVer }}
+          
+          **Full Semantic Version:** ${{ steps.gitversion.outputs.fullSemVer }}
+          **Assembly Version:** ${{ steps.gitversion.outputs.assemblySemVer }}
+          
+          ### Changes
+          This release was automatically generated from commit ${{ github.sha }}.
+        draft: false
+        prerelease: ${{ contains(steps.gitversion.outputs.semVer, '-') }}
+    
+    - name: Upload Build Artifacts
+      if: github.ref == 'refs/heads/master'
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts-v${{ steps.gitversion.outputs.semVer }}
+        path: |
+          TestFizzBuzz/bin/Release/
+          TestFizzBuzz.Tests/bin/Release/

@@ -1,7 +1,5 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# Azure DevOps Pipeline with Semantic Versioning
+# Supports SonarCloud analysis and Qodana scanning
 
 trigger:
 - master
@@ -9,7 +7,19 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
+variables:
+  buildConfiguration: 'Release'
+
 steps:
+- checkout: self
+  fetchDepth: 0  # Required for GitVersion
+
+- task: UseGitVersion@6
+  displayName: 'Determine Version with GitVersion'
+  inputs:
+    versionSpec: '6.0.0'
+    includePrerelease: false
+
 - task: SonarCloudPrepare@1
   inputs:
     SonarCloud: 'SonarCloud'
@@ -17,20 +27,51 @@ steps:
     scannerMode: 'MSBuild'
     projectKey: 'carles-cs_TestFizzBuzz'
     projectName: 'TestFizzBuzz'
+    projectVersion: '$(GitVersion.SemVer)'
+
 - task: DotNetCoreCLI@2
-  displayName: Build
+  displayName: 'Restore dependencies'
+  inputs:
+    command: 'restore'
+    projects: '**/*.sln'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Build with semantic version'
   inputs:
     command: 'build'
     projects: '**/*.sln'
+    arguments: '--no-restore --configuration $(buildConfiguration) /p:Version=$(GitVersion.AssemblySemVer) /p:AssemblyVersion=$(GitVersion.AssemblySemVer) /p:FileVersion=$(GitVersion.AssemblySemFileVer)'
+
 - task: DotNetCoreCLI@2
-  displayName: Run Tests
+  displayName: 'Run Tests'
   inputs:
     command: 'test'
     projects: '**/*.Tests.csproj'
-    arguments: '--configuration $(buildConfiguration) --logger trx --collect:"Code Coverage"'
-    testRunTitle: 'Tests TestFizzBuzz'
+    arguments: '--no-build --configuration $(buildConfiguration) --logger trx --collect:"Code Coverage"'
+    testRunTitle: 'Tests TestFizzBuzz v$(GitVersion.SemVer)'
+
 - task: QodanaScan@2022
+  displayName: 'Run Qodana Analysis'
+
 - task: SonarCloudAnalyze@1
+  displayName: 'Run SonarCloud Analysis'
+
 - task: SonarCloudPublish@1
+  displayName: 'Publish SonarCloud Results'
   inputs:
     pollingTimeoutSec: '300'
+
+- task: PublishTestResults@2
+  displayName: 'Publish Test Results'
+  inputs:
+    testResultsFormat: 'VSTest'
+    testResultsFiles: '**/*.trx'
+    testRunTitle: 'TestFizzBuzz v$(GitVersion.SemVer) Tests'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Build Artifacts'
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: 'TestFizzBuzz-v$(GitVersion.SemVer)'
+    publishLocation: 'Container'
