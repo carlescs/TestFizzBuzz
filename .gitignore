@@ -7,3 +7,4 @@ TestFizzBuzz/obj/
 /.idea/
 *.DotSettings.user
 /.vs
+/TestFizzBuzz.Tests/TestResults/**/*
